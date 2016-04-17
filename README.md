@@ -9,9 +9,8 @@ gcc -o http http.c -l wsock32
 
 #### 站点搭建
 站点搭建:
-站点|
-	|---  http.exe  服务程序
-	|---  www   网站目录
+创建站点目录，把http.exe复制到目录下，创建www目录并把网站的所有静态页面copy到目录下。
+启动服务
 ``` bash
 http 8080
 ```
