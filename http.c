@@ -265,7 +265,6 @@ void not_found(SOCKET client)
 /**********************************************************************/  
 void serve_file(SOCKET client, const char *filename)  
 {  
-  printf("enter serve_file:%s",filename);
  FILE *resource = NULL;  
  char buf[1024];  
   
