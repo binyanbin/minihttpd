@@ -25,7 +25,6 @@
 void accept_request(SOCKET);  
 void bad_request(int);  
 void cat(SOCKET, FILE *);  
-void cannot_execute(int);  
 void error_die(const char *);  
 int get_line(SOCKET, char *, int);  
 void headers(SOCKET);  
@@ -154,23 +153,6 @@ void cat(SOCKET client, FILE *resource)
     send(client, buf, strlen(buf), 0);  
     fgets(buf, sizeof(buf), resource);  
   }  
-}  
-  
-/**********************************************************************/  
-/*不支持动态程序处理*/
-/**********************************************************************/  
-void cannot_execute(int client)  
-{  
-  char buf[1024];  
-
-  sprintf(buf, "HTTP/1.0 500 Internal Server Error\r\n");  
-  send(client, buf, strlen(buf), 0);  
-  sprintf(buf, "Content-type: text/html\r\n");  
-  send(client, buf, strlen(buf), 0);  
-  sprintf(buf, "\r\n");  
-  send(client, buf, strlen(buf), 0);  
-  sprintf(buf, "<P>Error prohibited CGI execution.</p>\r\n");  
-  send(client, buf, strlen(buf), 0);  
 }  
   
 /**********************************************************************/  
