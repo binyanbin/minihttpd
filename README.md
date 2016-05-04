@@ -14,3 +14,6 @@ gcc -o http http.c -l wsock32
 ``` bash
 http 8080
 ```
+
+#### 版本
+0.1.1 支持图片(最大1m),css，解决中文问题。
