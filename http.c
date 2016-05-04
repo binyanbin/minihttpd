@@ -6,6 +6,7 @@
 #include <string.h>  
 #include <sys/stat.h>  
 #include <stdlib.h>  
+#include <math.h>
 
 #ifdef MINGW32
 #include <winsock2.h>
@@ -20,14 +21,16 @@
   
 #define ISspace(x) isspace((int)(x))  
   
-#define SERVER_STRING "Server: bdsoftmgr httpd/0.1.0\r\n"  
+#define SERVER_STRING "Server: binyanbin httpd/0.1.1\r\n"  
+#define IMG_BUFFER_SIZE 1024*1024   //支持最大图片大小1M
   
 void accept_request(SOCKET);  
 void bad_request(int);  
 void cat(SOCKET, FILE *);  
+void image(SOCKET, FILE *);  
 void error_die(const char *);  
 int get_line(SOCKET, char *, int);  
-void headers(SOCKET);  
+void headers(SOCKET,char *);  
 void not_found(SOCKET);  
 void serve_file(SOCKET, const char *);  
 SOCKET startup(u_short *);  
@@ -141,7 +144,7 @@ void bad_request(int client)
 }  
   
 /**********************************************************************/  
-/* 输出文件内容*/  
+/* 输出文本文件内容*/  
 /**********************************************************************/  
 void cat(SOCKET client, FILE *resource)  
 {  
@@ -154,6 +157,18 @@ void cat(SOCKET client, FILE *resource)
     fgets(buf, sizeof(buf), resource);  
   }  
 }  
+/**********************************************************************/  
+/* 输出图片文件内容*/  
+/**********************************************************************/  
+void image(SOCKET client,FILE *resource)
+{
+  char buffer[IMG_BUFFER_SIZE];
+  fseek(resource , 0 , SEEK_END);  
+  size_t lSize = ftell(resource);  // 获得文件大小
+  rewind(resource);
+  long ret = fread(buffer, 1, lSize, resource);
+  send(client, buffer, ret, 0);  
+}
   
 /**********************************************************************/  
 /*服务出错并中止运行*/
@@ -202,17 +217,26 @@ int get_line(SOCKET sock, char *buf, int size)
 /**********************************************************************/  
 /* http头输出 */
 /**********************************************************************/  
-void headers(SOCKET client)  
-{  
- char buf[1024];  
- strcpy(buf, "HTTP/1.0 200 OK\r\n");  
- send(client, buf, strlen(buf), 0);  
- strcpy(buf, SERVER_STRING);  
- send(client, buf, strlen(buf), 0);  
- sprintf(buf, "Content-Type: text/html\r\n");  
- send(client, buf, strlen(buf), 0);  
- strcpy(buf, "\r\n");  
- send(client, buf, strlen(buf), 0);  
+void headers(SOCKET client,char* ext)  
+{
+  char buf[1024];  
+  strcpy(buf, "HTTP/1.0 200 OK\r\n");  
+  send(client, buf, strlen(buf), 0);  
+  strcpy(buf, SERVER_STRING);  
+  send(client, buf, strlen(buf), 0); 
+  if (_stricmp(ext, "html") == 0 )   
+    sprintf(buf, "Content-Type: text/html\r\n");  
+  else if (_stricmp(ext, "css") == 0)
+    sprintf(buf, "Content-Type: text/css\r\n");  
+  else if (_stricmp(ext,"png") == 0)
+    sprintf(buf,"Content-Type: image/png\r\n");
+  else if (_stricmp(ext,"gif") == 0)
+  sprintf(buf,"Content-Type: image/gif\r\n");
+    else if (_stricmp(ext,"jpg") == 0)
+  sprintf(buf,"Content-Type: image/jpeg\r\n");
+  send(client, buf, strlen(buf), 0);  
+  strcpy(buf, "\r\n");  
+  send(client, buf, strlen(buf), 0);  
 }  
   
 /**********************************************************************/  
@@ -251,13 +275,23 @@ void serve_file(SOCKET client, const char *filename)
  char buf[1024];  
   
  discardheaders(client);  
- resource = fopen(filename, "r");  
+ resource = fopen(filename, "rb");  
+ //获取扩展名
+char* ext=strrchr(filename,'.');
+if (ext)
+{    
+    *ext='\0';    
+    ext++;
+}
  if (resource == NULL)  
   not_found(client);  
  else  
- {  
-  headers(client);  
-  cat(client, resource);  
+ {
+  headers(client,ext);  
+  if (_stricmp(ext,"png") == 0 ||_stricmp(ext,"jpg") ==0 || _stricmp(ext,"gif")==0)//图片
+    image(client,resource);
+  else//文本
+    cat(client, resource);  
  }  
  fclose(resource);  
 }  
@@ -272,7 +306,7 @@ void discardheaders(SOCKET client)
     int numchars = 1;  
     while ((numchars > 0) && strcmp("\n", buf)) 
         numchars = get_line(client, buf, sizeof(buf));  
-}  
+} 
   
 /**********************************************************************/  
 /* 启动服务并进行相关设置 */  
