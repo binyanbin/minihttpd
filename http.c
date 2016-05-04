@@ -21,7 +21,7 @@
   
 #define ISspace(x) isspace((int)(x))  
   
-#define SERVER_STRING "Server: binyanbin httpd/0.1.1\r\n"  
+#define SERVER_STRING "Server: binyanbin httpd/0.1.1\r\n"  //版本信息
 #define IMG_BUFFER_SIZE 1024*1024   //支持最大图片大小1M
   
 void accept_request(SOCKET);  
