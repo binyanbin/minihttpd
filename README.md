@@ -1,6 +1,10 @@
 ## minhttpd
 
-一个超小型静态资源http服务器,仅支持html和get动词，暂不支持中文(稍后会解决),去掉注释及空行的剩余代码量小于300行。可支持windows和linux gcc编译。
+一个超小型静态资源http服务器,,去掉注释及空行的剩余代码量小于300行。可支持windows和linux gcc编译。
+
+## 开发目的
+
+支持静态资源上传与下载，如图片,html,css等静态资源，而达到静态资源与web主服务器分离的目的。
 
 #### windwos MinGW编译:
 ``` bash
